@@ -37,13 +37,20 @@ Function Send-Mail {
 
     [cmdletbinding()]
     param (
-        [Parameter(Mandatory=$True,Position=0)][String] $To,
-        [Parameter(Mandatory=$True,Position=1)][String] $Subject,
-        [Parameter(Mandatory=$True,Position=2)][String] $Body,
-        [Parameter(Mandatory=$False,Position=3)][String] $CC,
-        [Parameter(Mandatory=$False,Position=4)][String] $BCC,
-        [Parameter(Mandatory=$False,Position=5)][String] $Attachments,
-        [Parameter(Mandatory=$False,Position=6)][switch] $Preview
+        [Parameter(Mandatory=$True,Position=0)]
+        [String[]] $To,
+        [Parameter(Mandatory=$True,Position=1)]
+        [String] $Subject,
+        [Parameter(Mandatory=$False,Position=2)]
+        [String] $Body,
+        [Parameter(Mandatory=$False,Position=3)]
+        [String[]] $CC,
+        [Parameter(Mandatory=$False,Position=4)]
+        [String[]] $BCC,
+        [Parameter(Mandatory=$False,Position=5)]
+        [String[]] $Attachments,
+        [Parameter(Mandatory=$False,Position=6)]
+        [switch] $Preview
     )
     
     begin {
@@ -54,7 +61,7 @@ Function Send-Mail {
             $Outlook = [Runtime.InteropServices.Marshal]::GetActiveObject("Outlook.Application")
             $Outlook.ActiveWindow().Activate()
         }
-        catch [System.Management.Automation.MethodInvocationException] {
+        catch [System.Runtime.InteropServices.COMException],[System.Management.Automation.MethodInvocationException] {
             # open new instance
             $Outlook = new-object -com Outlook.Application
             # $Outlook = New-Object Outlook.Application
@@ -62,6 +69,10 @@ Function Send-Mail {
             $folder = $namespace.GetDefaultFolder("olFolderInbox")
             $explorer = $folder.GetExplorer()
             $explorer.Display() 
+
+            # eliminate race conditions (http://stackoverflow.com/a/461327/134367)
+            # Start-Sleep -sec 2
+
         }
         catch [Exception] {
             Write-Host $_.Exception.ToString()
@@ -70,62 +81,42 @@ Function Send-Mail {
     }
     
     process {
-
-        # try {
-        #     # activate existing instance
-        #     $Outlook = [Runtime.InteropServices.Marshal]::GetActiveObject("Outlook.Application")
-        #     $Outlook.ActiveWindow().Activate()
-        # }
-        # catch [System.Management.Automation.MethodInvocationException] {
-        #     # open new instance
-        #     #$Outlook = new-object -com Outlook.Application
-        #     $Outlook = New-Object Outlook.Application
-        #     $namespace = $Outlook.GetNamespace("MAPI")
-        #     $folder = $namespace.GetDefaultFolder("olFolderInbox")
-        #     $explorer = $folder.GetExplorer()
-        #     $explorer.Display() 
-        # }
-        # catch [Exception] {
-        #     Write-Host $_.Exception.ToString()
-        # }
         
-        # OlItemType.olMailItem = 0
+        # OlItemType.olMailItem=0
         $Mail = $Outlook.CreateItem(0)
 
         # convert spaces and commas to semi-colons
-        $Mail.To = $to.Replace(",",";").Replace(" ",";")
-        $Mail.Cc = $cc.Replace(",",";").Replace(" ",";")
-        $Mail.Bcc = $bcc.Replace(",",";").Replace(" ",";")
+        $Mail.To = $to -join ";"
+        $Mail.Cc = $cc -join ";"
+        $Mail.Bcc = $bcc -join ";"
 
         $Mail.Subject = $subject
 
         # Outlook.OlBodyFormat.olFormatUnspecified=0
         # Outlook.OlBodyFormat.olFormatPlain=1
-        # Outlook.OlBodyFormat.olFormatHTML = 2
+        # Outlook.OlBodyFormat.olFormatHTML=2
         # Outlook.OlBodyFormat.olFormatRichText=3
 
         $Mail.BodyFormat = 2 # [Outlook.OlBodyFormat.olFormatHTML]
         $Mail.Body = $body
         $Mail.HTMLBody = "<HTML><BODY>" + $body + "</BODY></HTML>"
 
-        # split attachment string; loop and attach
-        #$File = "C:\Users\cb2215\Desktop\dx.sql"
-        #$Mail.Attachments.Add($File) | out-null
+        # PowerShell empty array 
+        if ($Attachments -ne $null) {
 
-        if ($preview) {
-            Write-Debug "Verbose..."
-            $Mail.Display()
+            Foreach ($File In $Attachments) {
+                Write-Verbose "Attaching $File ..."
+                $Mail.Attachments.Add($File) | out-null
+            }
+
         }
-        else {
-            Write-Debug "Verbose..."
-            $Mail.Send()
-        }
+
+        # show window or send message
+        if ($preview) { $Mail.Display() } else { $Mail.Send() }
         
     }
     
-    end {
-        Write-Verbose "$($MyInvocation.MyCommand.Name)::End"
-    }
+    end { Write-Verbose "$($MyInvocation.MyCommand.Name)::End" }
     
 }
 
