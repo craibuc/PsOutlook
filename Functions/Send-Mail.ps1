@@ -35,19 +35,25 @@ Function Send-Mail {
 
     [cmdletbinding()]
     param (
-        [Parameter(Mandatory=$True,Position=0)]
-        [String[]] $To,
         [Parameter(Mandatory=$True,Position=1)]
+        [String[]] $To,
+        
+        [Parameter(Mandatory=$True,Position=2)]
         [String] $Subject,
-        [Parameter(Mandatory=$False,Position=2)]
-        [String] $Body,
+        
         [Parameter(Mandatory=$False,Position=3)]
-        [String[]] $CC,
+        [String] $Body,
+        
         [Parameter(Mandatory=$False,Position=4)]
-        [String[]] $BCC,
+        [String[]] $CC,
+        
         [Parameter(Mandatory=$False,Position=5)]
-        [String[]] $Attachments,
+        [String[]] $BCC,
+        
         [Parameter(Mandatory=$False,Position=6)]
+        [String[]] $Attachments,
+
+        [Parameter(Mandatory=$False,Position=7)]
         [switch] $Preview
     )
     
