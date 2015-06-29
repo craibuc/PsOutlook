@@ -9,10 +9,10 @@
 @{
 
     # Script module or binary module file associated with this manifest
-    ModuleToProcess = ''
+    ModuleToProcess = 'PsOutlook.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.1.0'
+    ModuleVersion = '0.0.1'
 
     # ID used to uniquely identify this module
     GUID = '2a0313e4-ed30-4a9f-946e-039af39a3e9f'
@@ -63,7 +63,7 @@
     FormatsToProcess = @()
 
     # Modules to import as nested modules of the module specified in ModuleToProcess
-    NestedModules = 'PsOutlook.psm1'
+    NestedModules = ''
 
     # Functions to export from this module
     FunctionsToExport = '*'
