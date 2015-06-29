@@ -6,7 +6,7 @@ PowerShell wrapper of selected Microsoft Outlook functionality.
 
 * Download the [latest version of PsOutlook](https://github.com/craibuc/PsOutlook/releases)
 * Unzip
-* Copy the PsRaR folder to `C:\Users\<account>\Documents\WindowsPowerShell\Modules`
+* Copy the PsOutlook folder to `C:\Users\<account>\Documents\WindowsPowerShell\Modules`
 * Add `Import-Module PsOutlook -Force` to script
 
 ## Contributors
