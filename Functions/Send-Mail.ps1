@@ -27,8 +27,14 @@
     If set, the message will be displayed instead of sent.
 
 .EXAMPLE
-    Send-Mail "recipient@domain0.tld;recipient@domain1.tld", "the subject", "the message", "path/to/attachment0;path/to/attachmentN"
-    
+    PS > Send-Mail "recipient@domain0.tld;recipient@domain1.tld", "the subject", "the message", "path/to/attachment0;path/to/attachmentN"
+
+Send the message without interaction.
+
+.EXAMPLE
+    PS > Send-Mail "recipient@domain0.tld;recipient@domain1.tld", "the subject", "the message", "path/to/attachment0;path/to/attachmentN" -Preview
+
+Show the message.
 #>
 
 Function Send-Mail {
@@ -39,6 +45,7 @@ Function Send-Mail {
         [String[]] $To,
         
         [Parameter(Mandatory=$True,Position=2)]
+        [Alias('s')]
         [String] $Subject,
         
         [Parameter(Mandatory=$False,Position=3)]
@@ -51,9 +58,11 @@ Function Send-Mail {
         [String[]] $BCC,
         
         [Parameter(Mandatory=$False,Position=6)]
+        [Alias('a')]
         [String[]] $Attachments,
 
         [Parameter(Mandatory=$False,Position=7)]
+        [Alias('p')]
         [switch] $Preview
     )
     
