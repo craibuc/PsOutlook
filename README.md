@@ -4,21 +4,34 @@ PowerShell wrapper of selected Microsoft Outlook functionality.
 
 ## Installation
 
-* Download the [latest version of PsOutlook](https://github.com/craibuc/PsOutlook/releases)
+* Download the [latest version of PsOutlook](https://github.com/craibuc/PsOutlook/releases/latest)
 * Unzip
 * Copy the PsOutlook folder to `C:\Users\<account>\Documents\WindowsPowerShell\Modules`
-* Add `Import-Module PsOutlook -Force` to script
+* Type `PS>  Import-Module PsOutlook -Force` in script's directory or add to `$Profile`
 
 ## Usage
 
 ```powershell
 # send the message without interaction
-PS> Send-Mail "recipient@domain0.tld;recipient@domain1.tld", "the subject", "the message", "path/to/attachment0;path/to/attachmentN"
+PS> Send-Mail -To @("recipient@domain0.tld","recipient@domain1.tld") -Subject "the subject" -Body "the message" -Attachments @("path/to/attachment0","path/to/attachmentN")
 ```
 
 ```powershell
 # show the message
-PS> Send-Mail "recipient@domain0.tld;recipient@domain1.tld", "the subject", "the message", "path/to/attachment0;path/to/attachmentN" -Preview
+PS> Send-Mail -To @("recipient@domain0.tld","recipient@domain1.tld") -Subject "the subject" -Body "the message" -Attachments @("path/to/attachment0","path/to/attachmentN") -Preview
+```
+
+```powershell
+# alternative syntax
+$Message = @{
+  To=@("recipient@domain0.tld","recipient@domain1.tld")
+  Subject="the subject"
+  Body="the message" 
+  Attachments=@("path/to/attachment0","path/to/attachmentN")
+  Preview=$True
+}
+
+PS> Send-Mail @Message
 ```
 
 ## Contributors
