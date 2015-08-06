@@ -12,7 +12,7 @@
     ModuleToProcess = 'PsOutlook.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.0.2'
+    ModuleVersion = '0.0.3'
 
     # ID used to uniquely identify this module
     GUID = '2a0313e4-ed30-4a9f-946e-039af39a3e9f'
