@@ -40,96 +40,125 @@ Show the message.
 Function Send-Mail {
 
     [cmdletbinding()]
-    param (
-        [Parameter(Mandatory=$True,Position=1)]
+    PARAM (
+        [Parameter(Mandatory=$True)]
         [String[]] $To,
         
-        [Parameter(Mandatory=$True,Position=2)]
+        [Parameter(Mandatory=$True)]
         [Alias('s')]
         [String] $Subject,
         
-        [Parameter(Mandatory=$False,Position=3)]
+        [Parameter(Mandatory=$False)]
         [String] $Body,
         
-        [Parameter(Mandatory=$False,Position=4)]
+        [Parameter(Mandatory=$False)]
         [String[]] $CC,
         
-        [Parameter(Mandatory=$False,Position=5)]
+        [Parameter(Mandatory=$False)]
         [String[]] $BCC,
         
-        [Parameter(Mandatory=$False,Position=6)]
+        [Parameter(Mandatory=$False)]
         [Alias('a')]
         [String[]] $Attachments,
 
-        [Parameter(Mandatory=$False,Position=7)]
+        [Parameter(Mandatory=$False)]
         [Alias('p')]
         [switch] $Preview
     )
     
-    begin {
-        Write-Verbose "$($MyInvocation.MyCommand.Name)::Begin"
+    BEGIN {
+        Write-Debug "$($MyInvocation.MyCommand.Name)::Begin"
+
+        Write-Debug "To: $To"
+        Write-Debug "Subject: $Subject"
+        Write-Debug "Body: $Body"
+        Write-Debug "CC: $CC"
+        Write-Debug "Attachments: $Attachments"
+        Write-Debug "Preview: $Preview"
 
         try {
             # activate existing instance
+            Write-Verbose "Activating existing Outlook instance..."
             $Outlook = [Runtime.InteropServices.Marshal]::GetActiveObject("Outlook.Application")
             $Outlook.ActiveWindow().Activate()
         }
         catch [System.Runtime.InteropServices.COMException],[System.Management.Automation.MethodInvocationException] {
+            Write-Verbose "Opening new Outlook instance..."
             # open new instance
-            $Outlook = new-object -com Outlook.Application
+
+            $Outlook = New-Object -Com Outlook.Application
             # $Outlook = New-Object Outlook.Application
-            $namespace = $Outlook.GetNamespace("MAPI")
-            $folder = $namespace.GetDefaultFolder("olFolderInbox")
-            $explorer = $folder.GetExplorer()
-            $explorer.Display() 
+
+            # Outlook's UI isn't required to send a message
+            # $namespace = $Outlook.GetNamespace("MAPI")
+            # $folder = $namespace.GetDefaultFolder("olFolderInbox")
+            # $explorer = $folder.GetExplorer()
+            # $explorer.Display() 
 
             # eliminate race conditions (http://stackoverflow.com/a/461327/134367)
-            # Start-Sleep -sec 2
+            # Start-Sleep -sec 4
 
         }
         catch [Exception] {
-            Write-Host $_.Exception.ToString()
+            # Write-Error $_.Exception.ToString()
+            Throw
         }
 
     }
     
-    process {
-        
-        # OlItemType.olMailItem=0
-        $Mail = $Outlook.CreateItem(0)
+    PROCESS {
+        Write-Debug "$($MyInvocation.MyCommand.Name)::Process"
 
-        # convert spaces and commas to semi-colons
-        $Mail.To = $to -join ";"
-        $Mail.Cc = $cc -join ";"
-        $Mail.Bcc = $bcc -join ";"
+        Try {
+            # throw New-Object System.Exception 'This is an error'
 
-        $Mail.Subject = $subject
+            Write-Verbose "Creating message..."
+            # OlItemType.olMailItem=0
+            $Mail = $Outlook.CreateItem(0)
 
-        # Outlook.OlBodyFormat.olFormatUnspecified=0
-        # Outlook.OlBodyFormat.olFormatPlain=1
-        # Outlook.OlBodyFormat.olFormatHTML=2
-        # Outlook.OlBodyFormat.olFormatRichText=3
+            # convert spaces and commas to semi-colons
+            $Mail.To = $to -join ";"
+            $Mail.Cc = $cc -join ";"
+            $Mail.Bcc = $bcc -join ";"
+            $Mail.Subject = $subject
 
-        $Mail.BodyFormat = 2 # [Outlook.OlBodyFormat.olFormatHTML]
-        $Mail.Body = $body
-        $Mail.HTMLBody = "<HTML><BODY>" + $body + "</BODY></HTML>"
+            # Outlook.OlBodyFormat.olFormatUnspecified=0
+            # Outlook.OlBodyFormat.olFormatPlain=1
+            # Outlook.OlBodyFormat.olFormatHTML=2
+            # Outlook.OlBodyFormat.olFormatRichText=3
 
-        # PowerShell empty array 
-        if ($Attachments -ne $null) {
+            $Mail.BodyFormat = 2 # [Outlook.OlBodyFormat.olFormatHTML]
+            $Mail.Body = $Body
+            $Mail.HTMLBody = "<HTML><BODY>" + $Body + "</BODY></HTML>"
 
-            Foreach ($File In $Attachments) {
-                Write-Verbose "Attaching $File ..."
-                $Mail.Attachments.Add($File) | out-null
-            }
+            # add attachments
+            if ($Attachments -ne $null) {
+                Foreach ($File In $Attachments) {
+                    Write-Verbose "Attaching $File ..."
+                    $Mail.Attachments.Add($File) | out-null
+                }
+            } # if
 
+            # show window or send message
+            if ($preview) { $Mail.Display() } 
+            else { $Mail.Send() }
+
+        } # try
+        Catch [Exception] {
+            # Write-Host $_.Exception.ToString()
+            Throw
         }
 
-        # show window or send message
-        if ($preview) { $Mail.Display() } else { $Mail.Send() }
-        
     }
     
-    end { Write-Verbose "$($MyInvocation.MyCommand.Name)::End" }
+    END { 
+        Write-Debug "$($MyInvocation.MyCommand.Name)::End"
+
+        if ($Preview -eq $False) { 
+            Write-Verbose "Quitting..."
+            $Outlook.Quit() 
+        }
+    }
     
 }
 
