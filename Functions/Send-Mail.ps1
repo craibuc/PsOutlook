@@ -126,10 +126,14 @@ Function Send-Mail {
             # Outlook.OlBodyFormat.olFormatPlain=1
             # Outlook.OlBodyFormat.olFormatHTML=2
             # Outlook.OlBodyFormat.olFormatRichText=3
+            
+            $Mail.Display()
+            $Signature = $Mail.Body
+            Write-Verbose "Signature: $Signature"
 
-            $Mail.BodyFormat = 2 # [Outlook.OlBodyFormat.olFormatHTML]
-            $Mail.Body = $Body
-            $Mail.HTMLBody = "<HTML><BODY>" + $Body + "</BODY></HTML>"
+            #$Mail.BodyFormat = 0 # [Outlook.OlBodyFormat.olFormatHTML]
+            $Mail.Body = $Body + $Signature
+            # $Mail.HTMLBody = "<HTML><BODY>" + $Body + $Signature + "</BODY></HTML>" 
 
             # add attachments
             if ($Attachments -ne $null) {
